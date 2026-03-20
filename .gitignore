@@ -17,3 +17,7 @@ Thumbs.db
 *.sqlite3
 *.db
 *.bak
+
+#csv
+csv_files/
+*.csv

@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Secrets
+.env
+.env.local
+
+# SQL session/temp files
+*.session.sql
+
+# Databases / backups
+*.sqlite3
+*.db
+*.bak

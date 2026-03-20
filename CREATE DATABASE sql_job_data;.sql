@@ -1,0 +1,1 @@
+CREATE DATABASE sql_job_data;

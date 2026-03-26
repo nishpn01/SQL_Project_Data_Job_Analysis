@@ -14,7 +14,9 @@ COPY skills_job_dim
 FROM '/Library/DataAnalysis/SQL_Project_Data_Job_Analysis/csv_files/skills_job_dim.csv'
 WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
 
-
+/* Check the data after loading
 SELECT *
-FROM job_postings_fact
+FROM skills_job_dim
 LIMIT 100;
+*/
+

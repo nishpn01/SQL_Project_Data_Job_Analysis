@@ -20,7 +20,7 @@ WHERE
     job_postings_fact.job_title_short = 'Data Analyst' AND 
     job_postings_fact.job_country = 'United States' AND 
     job_postings_fact.job_schedule_type = 'Full-time' AND
-    -- Consistent seniority exclusions to keep the focus on professional analyst roles [3, 4].
+    -- Consistent seniority exclusions to keep the focus on professional analyst roles.
     job_postings_fact.job_title NOT LIKE '%Senior%' AND
     job_postings_fact.job_title NOT LIKE '%Director%' AND
     job_postings_fact.job_title NOT LIKE '%Principal%' AND
@@ -31,7 +31,7 @@ WHERE
     job_postings_fact.job_title NOT LIKE '%Chief%'
 GROUP BY 
     month_name,
-    -- Grouping by the raw month number to keep the chronological order intact [5, 6].
+    -- Grouping by the raw month number to keep the chronological order intact.
     EXTRACT(MONTH FROM job_postings_fact.job_posted_date)
 ORDER BY 
     EXTRACT(MONTH FROM job_postings_fact.job_posted_date);

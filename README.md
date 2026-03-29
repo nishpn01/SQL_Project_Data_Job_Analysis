@@ -46,7 +46,7 @@ My SQL implementation utilizes advanced analytical features:
 - **Temporal Extraction:** Transformed raw timestamps using **`TO_CHAR`** and **`EXTRACT`** to perform time-series analysis.
 ---
 ## **Detailed SQL Analysis & Insights**
-### **Query 1: Identifying the Salary Ceiling**
+### **Query 1: Identifying the Salary Ceiling** - [Full Script](/data_jobs_analysis/1_top_paying_jobs.sql)
 Establishes the market cap by isolating the top 10 highest-paying Data Analyst roles. I applied strict seniority filters to focus on high-performing practitioner roles.
 ```sql
 SELECT job_id, job_title, company_dim.name AS company_name,
@@ -59,10 +59,10 @@ ORDER BY standardized_yearly_salary DESC LIMIT 10;
 ```
 ![](/Assets/q1_top10_paying_jobs.png "width=3822 | height=2090")
 > ***Insights:** Top-tier compensation ranges from **$232,423 to $350,000**, with elite pay driven by AI firms like **Anthropic** and **OpenAI**.*
-### **Query 2: Technical Requirements of Elite Roles**
+### **Query 2: Technical Requirements of Elite Roles** - [Full Script](/data_jobs_analysis/2_skills_for_top_paying_jobs.sql)
 Maps the specific skill clusters required for the six-figure roles identified in Query 1.
 ```sql
-WITH top_paying_jobs AS ( -- Logic from Query 1 )
+WITH top_paying_jobs AS ( -- Logic from Query 1 
 SELECT top_paying_jobs.*, skills_dim.skills
 FROM top_paying_jobs
 INNER JOIN skills_job_dim ON top_paying_jobs.job_id = skills_job_dim.job_id
@@ -70,7 +70,7 @@ INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id;
 ```
 ![](/Assets/q2_skills_for_top10_jobs.png "width=3816 | height=2086")
 > **Insights:** **SQL** and **Python** are the foundational anchors, appearing in ~80% of top roles, often paired with libraries like **Pandas** or tools like **Flow, sheets, Hadoop.**
-### **Query 3: Hidden Gems (Niche Skill Analysis)**
+### **Query 3: Hidden Gems (Niche Skill Analysis)** - [Full Script](/data_jobs_analysis/3_market_saturation_vs_oppty.sql)
 Identifies high-reward skills with low competition, defined as skills appearing in **less than 5% of the total market**.
 ```sql
 SELECT skills_dim.skills AS skill_name, COUNT(skills_job_dim.job_id) AS demand_count,
@@ -82,7 +82,7 @@ ORDER BY avg_salary DESC;
 ```
 ![](/Assets/q3_the_hidden_gems.png "width=3824 | height=2076")
 > **Insights: PyTorch** ($127,148) and **Kafka** ($118,639) offer massive pay premiums ($40k+ above median) with minimal competition.
-### **Query 4: Seasonal Hiring Strategy**
+### **Query 4: Seasonal Hiring Strategy** - [Full Script](/data_jobs_analysis/4_seasonal_hiring_strategy.sql)
 Uncovers the seasonal rhythm of the market to optimize application timing.
 ```sql
 SELECT TO_CHAR(job_posted_date, 'Month') AS month_name, COUNT(job_id) AS job_posted_count
@@ -92,7 +92,7 @@ ORDER BY EXTRACT(MONTH FROM job_posted_date);
 ```
 ![](/Assets/q4_seasonal_hiring_strategy.png "width=3776 | height=2084")
 > **Insights:** A definitive "Q1 Surge" peaks in January (6,672 postings), offering 2.3x more opportunity than the December (2,856) low.
-### **Query 5: Company Quality vs. Quantity**
+### **Query 5: Company Quality vs. Quantity** - [Full Script](/data_jobs_analysis/5_comp_quantity_vs_quality.sql)
 Distinguishes between high-volume staffing firms and high-paying niche employers.
 ```sql
 SELECT company_dim.name AS company_name, COUNT(job_id) AS job_count,
@@ -103,7 +103,7 @@ ORDER BY avg_salary DESC;
 ```
 ![](/Assets/q5_Company_Quality%20_quantity.png "width=3810 | height=2084")
 > **Insights:** **TikTok** ($145,912) represents the high-quality/lower-volume bracket, while **Robert Half** (132 jobs) represents mass-market volume with pay closer to the median.
-### **Query 6: Global Skill Portability**
+### **Query 6: Global Skill Portability** - [Full Script](/data_jobs_analysis/6_global_skill_portability.sql)
 Identifies "Lifetime Skills" that remain portable across Analyst, Scientist, and Engineer roles from entry-level to executive.
 ```sql
 SELECT skills_dim.skills AS skill_name, COUNT(DISTINCT job_title_short) AS role_count,
@@ -148,4 +148,4 @@ While this project focuses on query-driven insights and static visual reporting,
 - **Tableau:** Visual analysis and data storytelling of query results.
 - **VS Code & Git:** Integrated development and version control.
 ## **Full Case Study Link**
-For a detailed narrative of the methodology and strategic discovery process, view the **[[[Full Data Market Case Study]](https://beta.eden.so/public-access/item/896f9c07-9d25-4ff1-8fdb-79c70a6bfc1e)]**
+For a detailed narrative of the methodology and strategic discovery process, view the **[[Full Data Market Case Study]](https://beta.eden.so/public-access/item/896f9c07-9d25-4ff1-8fdb-79c70a6bfc1e)**

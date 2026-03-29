@@ -57,7 +57,7 @@ WHERE job_title_short = 'Data Analyst' AND job_country = 'United States'
 AND salary_year_avg IS NOT NULL AND job_title NOT LIKE '%Senior%' -- (Other seniority filters)
 ORDER BY standardized_yearly_salary DESC LIMIT 10;
 ```
-![](a144b28a-bd25-4507-b9e9-28ec52e0c1ad "width=3822 | height=2090")
+![](/Assets/q1_top10_paying_jobs.png "width=3822 | height=2090")
 > ***Insights:** Top-tier compensation ranges from **$232,423 to $350,000**, with elite pay driven by AI firms like **Anthropic** and **OpenAI**.*
 ### **Query 2: Technical Requirements of Elite Roles**
 Maps the specific skill clusters required for the six-figure roles identified in Query 1.
@@ -68,8 +68,8 @@ FROM top_paying_jobs
 INNER JOIN skills_job_dim ON top_paying_jobs.job_id = skills_job_dim.job_id
 INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id;
 ```
-![](8aaaeab7-8a75-4cde-b9a6-960ce344cf5a "width=3816 | height=2086")
-> I**nsights: **S**QL and Python **are the foundational anchors, appearing in ~80% of top roles, often paired with libraries like P**andas **or tools like F**low, sheets, Hadoop.**
+![](/Assets/q2_skills_for_top10_jobs.png "width=3816 | height=2086")
+> **Insights:** **SQL** and **Python** are the foundational anchors, appearing in ~80% of top roles, often paired with libraries like **Pandas** or tools like **Flow, sheets, Hadoop.**
 ### **Query 3: Hidden Gems (Niche Skill Analysis)**
 Identifies high-reward skills with low competition, defined as skills appearing in **less than 5% of the total market**.
 ```sql
@@ -80,8 +80,8 @@ GROUP BY skill_name
 HAVING COUNT(skills_job_dim.job_id) > 10 AND COUNT(skills_job_dim.job_id) < (total_jobs * 0.05)
 ORDER BY avg_salary DESC;
 ```
-![](97b08bed-dd60-45e8-87bb-83652f92c552 "width=3824 | height=2076")
-> In**sights: P**y**Torch ($127,148) a**nd Ka**fka ($118,639) o**ffer massive pay premiums ($40k+ above median) with minimal competition.
+![](/Assets/q3_the_hidden_gems.png "width=3824 | height=2076")
+> **Insights: PyTorch** ($127,148) and **Kafka** ($118,639) offer massive pay premiums ($40k+ above median) with minimal competition.
 ### **Query 4: Seasonal Hiring Strategy**
 Uncovers the seasonal rhythm of the market to optimize application timing.
 ```sql
@@ -90,8 +90,8 @@ FROM job_postings_fact -- Filters applied
 GROUP BY month_name, EXTRACT(MONTH FROM job_posted_date)
 ORDER BY EXTRACT(MONTH FROM job_posted_date);
 ```
-![](f678fdfe-16b6-4a59-9ffc-5915080f999d "width=3776 | height=2084")
-> In**sights: A** definitive "Q**1 Surge" p**eaks in Ja**nuary (6,672 postings), **offering 2.3x more opportunity than the De**cember (2,856) l**ow.
+![](/Assets/q4_seasonal_hiring_strategy.png "width=3776 | height=2084")
+> **Insights:** A definitive "Q1 Surge" peaks in January (6,672 postings), offering 2.3x more opportunity than the December (2,856) low.
 ### **Query 5: Company Quality vs. Quantity**
 Distinguishes between high-volume staffing firms and high-paying niche employers.
 ```sql
@@ -101,8 +101,8 @@ FROM job_postings_fact -- Joins applied
 GROUP BY company_name HAVING COUNT(job_id) > 10
 ORDER BY avg_salary DESC;
 ```
-![](09a3ef52-6cde-49df-8370-8b34c06f23b5 "width=3810 | height=2084")
-> In**sights: T**i**kTok ($145,912) r**epresents the high-quality/lower-volume bracket, while Ro**bert Half (132 jobs) r**epresents mass-market volume with pay closer to the median.
+![](/Assets/q5_Company_Quality%20_quantity.png "width=3810 | height=2084")
+> **Insights:** **TikTok** ($145,912) represents the high-quality/lower-volume bracket, while **Robert Half** (132 jobs) represents mass-market volume with pay closer to the median.
 ### **Query 6: Global Skill Portability**
 Identifies "Lifetime Skills" that remain portable across Analyst, Scientist, and Engineer roles from entry-level to executive.
 ```sql
@@ -111,8 +111,8 @@ COUNT(job_id) AS total_demand, ROUND(AVG(salary_year_avg), 0) AS avg_salary
 FROM job_postings_fact -- Filters for DA, DS, DE roles
 GROUP BY skill_name HAVING COUNT(DISTINCT job_title_short) = 3;
 ```
-![](8ccfb649-2220-4a05-b236-9adf799cb264 "width=3816 | height=2088")
-> In**sights: S**Q**L (8,289) a**nd Py**thon (7,708) a**re universal anchors. Ka**fka ($145,436) a**nd Sp**ark ($138,723) r**epresent the "Portability Peak" for high-value career flexibility.
+![](/Assets/q6_global_skill_portability.png "width=3816 | height=2088")
+> **Insights:** **SQL** (8,289) and **Python** (7,708) are universal anchors. **Kafka** ($145,436) and **Spark** ($138,723) represent the "Portability Peak" for high-value career flexibility.
 ---
 ## **Visualizing the Results**
 I utilized Tableau to create six distinct visual assets to verify and communicate my findings:
@@ -122,20 +122,21 @@ I utilized Tableau to create six distinct visual assets to verify and communicat
 4. **Hiring Rhythm Area Chart:** Documenting the Q1 hiring surge.
 5. **Market Map Scatter Plot:** Categorizing hirers into quality vs. quantity quadrants.
 6. **Global Portability Treemap:** Identifying universal technical anchors.
-[[[View the Interactive Tableau Dashboard Here - Click Me]](https://public.tableau.com/views/JobMarketAnalysis_17745897577470/Top10Salary?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)](https://public.tableau.com/views/JobMarketAnalysis_17745897577470/Top10Salary?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+
+[[View the Interactive Tableau Dashboard Here - Click Me]](https://public.tableau.com/views/JobMarketAnalysis_17745897577470/Top10Salary?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
 ## **Major Discoveries & Strategic Insights**
 The multi-layered SQL analysis of the data job market yielded five primary insights for career optimization and market intelligence:
-1. Th**e Practitioner Salary Ceiling is High: T**he top tier of the US Data Analyst market for high-performing practitioners reaches between $232,423 and $375,000. These roles are primarily driven by elite AI research firms like Anthropic and OpenAI.
-2. "H**idden Gems" Offer Strategic Advantages: W**hile common skills have high competition, niche technical specializations like PyTorch ($127,148), Kafka($118,639), and TensorFlow ($116,869) command massive pay premiums, often $40,000+ above the market median, despite appearing in less than 5% of total job postings
-3. Th**e Q1 Hiring Surge: M**arket volume is highly seasonal. A definitive "Q1 Surge" occurs in January (6,672 postings), which offers nearly 2.3x more opportunity than the seasonal low in December (2,856 postings)
-4. Th**e "Quality vs. Quantity" Employer Divide: Th**e market is bifurcated between "Staffing Giants" like Robert Half (132 jobs), which provide high volume but pay closer to the median, and "Premium Payers" like TikTok ($145,912), which offer elite compensation with a smaller market footprint
-5. **Universal Anchors vs. Portability Peaks: S**QL (8,289 demand) and Python (7,708 demand) are the absolute technical anchors, remaining portable across Analyst, Scientist, and Engineer roles
+1. **The Practitioner Salary Ceiling is High:** The top tier of the US Data Analyst market for high-performing practitioners reaches between $232,423 and $375,000. These roles are primarily driven by elite AI research firms like Anthropic and OpenAI.
+2. "**Hidden Gems" Offer Strategic Advantages:** While common skills have high competition, niche technical specializations like PyTorch ($127,148), Kafka($118,639), and TensorFlow ($116,869) command massive pay premiums, often $40,000+ above the market median, despite appearing in less than 5% of total job postings
+3. **The Q1 Hiring Surge:** Market volume is highly seasonal. A definitive "Q1 Surge" occurs in January (6,672 postings), which offers nearly 2.3x more opportunity than the seasonal low in December (2,856 postings)
+4. **The "Quality vs. Quantity" Employer Divide:** The market is bifurcated between "Staffing Giants" like Robert Half (132 jobs), which provide high volume but pay closer to the median, and "Premium Payers" like TikTok ($145,912), which offer elite compensation with a smaller market footprint
+5. **Universal Anchors vs. Portability Peaks:** SQL (8,289 demand) and Python (7,708 demand) are the absolute technical anchors, remaining portable across Analyst, Scientist, and Engineer roles
 However, skills like Kafka ($145,436) and Scala($140,511) represent the "Portability Peak", they are universal across the data lifecycle yet command the highest average lifetime earnings in the industry.
 ## What I Learned
-**Complex Data Shaping:** Mastering Multi-layered CTEs and Subqueries to break down large-scale market data into manageable "temporary result sets" for refined analysis.
-**Temporal Engineering:** Learning to use `TO_CHAR` and `EXTRACT` to transform raw timestamps into a chronological hiring roadmap.
-**Market Benchmarking: **Implementing Set Theory and Standardization (2,080-hour multiplier) to create "apples-to-apples" comparisons between hourly and yearly salary data.
-**Data Storytelling Workflow: **Executing high-performance queries on a local PostgreSQL instance, exporting optimized result sets to CSV, and utilizing Tableau Public for visual discovery.
+1. **Complex Data Shaping:** Mastering Multi-layered CTEs and Subqueries to break down large-scale market data into manageable "temporary result sets" for refined analysis.
+2. **Temporal Engineering:** Learning to use `TO_CHAR` and `EXTRACT` to transform raw timestamps into a chronological hiring roadmap.
+3. **Market Benchmarking:** Implementing Set Theory and Standardization (2,080-hour multiplier) to create "apples-to-apples" comparisons between hourly and yearly salary data.
+4. **Data Storytelling Workflow:** Executing high-performance queries on a local PostgreSQL instance, exporting optimized result sets to CSV, and utilizing Tableau Public for visual discovery.
 ### **Future Roadmap**
 While this project focuses on query-driven insights and static visual reporting, future development includes:
 - **Interactive Tableau Dashboard & Data Story:** Developing a comprehensive and highly customizable Tableau dashboard and data story utilizing the entire raw dataset. This future iteration will move beyond the scope of the initial six queries, empowering stakeholders to dynamically explore the market through custom filters for job roles, specific titles, and salary ranges to uncover personalized insights

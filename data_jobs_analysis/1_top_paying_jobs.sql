@@ -32,9 +32,9 @@ SELECT
     job_postings_fact.job_title,
     job_postings_fact.job_location,
     job_postings_fact.job_schedule_type,
-    -- Standardizing salary by converting hourly rates to a yearly equivalent of 2080 hours [137, Conversation History].
+    -- Standardizing salary by converting hourly rates to a yearly equivalent of 2080 hours.
     ROUND(COALESCE(job_postings_fact.salary_year_avg, job_postings_fact.salary_hour_avg * 2080), 0) AS standardized_yearly_salary,
-    market_median.us_median_salary, -- Including the calculated market baseline for comparison [Conversation History].
+    market_median.us_median_salary, -- Including the calculated market baseline for comparison.
     company_dim.name AS company_name
 FROM
     job_postings_fact
@@ -46,9 +46,9 @@ WHERE
     job_postings_fact.job_title_short = 'Data Analyst' AND 
     job_postings_fact.job_country = 'United States' AND 
     job_postings_fact.job_schedule_type = 'Full-time' AND
-    company_dim.name NOT LIKE '%Test%' AND -- Excluding internal test entries to protect data integrity [Conversation History].
+    company_dim.name NOT LIKE '%Test%' AND -- Excluding internal test entries to protect data integrity.
     (job_postings_fact.salary_year_avg IS NOT NULL OR job_postings_fact.salary_hour_avg IS NOT NULL) AND
-    -- Applying seniority exclusions to the main results for a focused "Data Analyst" view [54, Conversation History].
+    -- Applying seniority exclusions to the main results for a focused "Data Analyst" view.
     job_postings_fact.job_title NOT LIKE '%Senior%' AND
     job_postings_fact.job_title NOT LIKE '%Director%' AND
     job_postings_fact.job_title NOT LIKE '%Principal%' AND

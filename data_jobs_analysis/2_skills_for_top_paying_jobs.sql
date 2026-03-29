@@ -1,5 +1,5 @@
 WITH market_median AS (
-    -- Calculates the 50th percentile (median) salary for Data Analysts in the US [64, Conversation History].
+    -- Calculates the 50th percentile (median) salary for Data Analysts in the US.
     SELECT 
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ROUND(COALESCE(job_postings_fact.salary_year_avg, job_postings_fact.salary_hour_avg * 2080), 0)) AS us_median_salary
     FROM job_postings_fact

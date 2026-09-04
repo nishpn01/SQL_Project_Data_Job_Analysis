@@ -1,13 +1,13 @@
 /* 
 OVERVIEW:
-This query identifies "Hidden Gem" skills by using a dynamic 5% threshold.
-Instead of an arbitrary range, it calculates the total number of available 
-Data Analyst jobs in the US and filters for skills that appear in less than 
-5% of those postings, identifying high-paying niche opportunities.
+This query identifies relatively uncommon skills in the 2023 posting sample using a dynamic 5% prevalence threshold.
+It calculates the total number of qualifying US full-time Data Analyst postings with salary data, then compares each selected skill's posting count and average standardized salary with the broader market median.
+
+Low posting prevalence is not a measure of applicant competition. The threshold here is a project-specific screen for skills that appear less often in the dataset.
 */
 
 WITH job_total_count AS (
-    -- This CTE calculates the total number of jobs meeting our specific criteria.
+    -- Count all qualifying US full-time Data Analyst postings with salary data for the prevalence denominator.
     SELECT 
         COUNT(job_postings_fact.job_id) AS total_jobs
     FROM job_postings_fact
@@ -28,7 +28,7 @@ market_median AS (
         job_postings_fact.job_country = 'United States' AND 
         job_postings_fact.job_schedule_type = 'Full-time' AND
         (job_postings_fact.salary_year_avg IS NOT NULL OR job_postings_fact.salary_hour_avg IS NOT NULL) AND
-        -- Seniority Filter: Ensures the baseline is not skewed by executive pay.
+        -- Seniority filter used for the median benchmark.
         job_postings_fact.job_title NOT LIKE '%Senior%' AND
         job_postings_fact.job_title NOT LIKE '%Director%' AND
         job_postings_fact.job_title NOT LIKE '%Principal%' AND
@@ -49,7 +49,7 @@ FROM
 INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
 INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
 LEFT JOIN company_dim ON job_postings_fact.company_id = company_dim.company_id
--- We cross join both the median and the total count to perform our dynamic calculations.
+-- Cross join the median and total count so both reference values are available in the grouped result.
 CROSS JOIN market_median
 CROSS JOIN job_total_count
 WHERE 
@@ -58,7 +58,7 @@ WHERE
     job_postings_fact.job_schedule_type = 'Full-time' AND
     company_dim.name NOT LIKE '%Test%' AND
     (job_postings_fact.salary_year_avg IS NOT NULL OR job_postings_fact.salary_hour_avg IS NOT NULL) AND
-    -- Exclude leadership to keep the "Gems" relevant to professional analysts.
+    -- Exclude leadership-title keywords from the selected skill rows.
     job_postings_fact.job_title NOT LIKE '%Senior%' AND
     job_postings_fact.job_title NOT LIKE '%Director%' AND
     job_postings_fact.job_title NOT LIKE '%Principal%' AND
@@ -72,7 +72,7 @@ GROUP BY
     market_median.us_median_salary,
     job_total_count.total_jobs
 HAVING 
-    -- DYNAMIC LOGIC: Skills must have more than 10 postings but appear in less than 5% of the total market.
+    -- Keep skills with more than 10 postings that appear in less than 5% of the denominator above.
     COUNT(skills_job_dim.job_id) > 10 AND 
     COUNT(skills_job_dim.job_id) < (job_total_count.total_jobs * 0.05)
 ORDER BY 

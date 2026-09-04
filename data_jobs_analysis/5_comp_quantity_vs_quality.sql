@@ -1,11 +1,9 @@
 /* 
 OVERVIEW:
-This query analyzes companies based on the "Quality" of their compensation 
-(average salary) versus the "Quantity" of their job postings (demand count). 
+This query compares employers using two descriptive measures: qualifying posting volume and average standardized salary.
+It includes employers with more than 10 matching postings and compares their average listed salary with the US market median.
 
-It identifies firms with a consistent market presence (at least 10 postings) 
-and compares their average pay to the US Market Median. This helps job seekers 
-distinguish between high-volume hirers and high-paying niche employers.
+These measures do not represent overall employer or job quality; they describe posting volume and average listed compensation in this dataset.
 */
 
 WITH market_median AS (
@@ -18,7 +16,7 @@ WITH market_median AS (
         job_postings_fact.job_country = 'United States' AND 
         job_postings_fact.job_schedule_type = 'Full-time' AND
         (job_postings_fact.salary_year_avg IS NOT NULL OR job_postings_fact.salary_hour_avg IS NOT NULL) AND
-        -- Consistent Seniority Filter: Focusing on professional analyst roles.
+        -- Use the same seniority-title exclusions as the main employer comparison.
         job_postings_fact.job_title NOT LIKE '%Senior%' AND
         job_postings_fact.job_title NOT LIKE '%Director%' AND
         job_postings_fact.job_title NOT LIKE '%Principal%' AND
@@ -31,23 +29,23 @@ WITH market_median AS (
 
 SELECT 
     company_dim.name AS company_name,
-    -- QUANTITY: Total number of job postings for this company.
+    -- Posting volume for this employer within the filtered dataset.
     COUNT(job_postings_fact.job_id) AS job_count,
-    -- QUALITY: Average standardized yearly salary for the company's roles.
+    -- Average standardized yearly salary for the employer's matching postings.
     ROUND(AVG(COALESCE(job_postings_fact.salary_year_avg, job_postings_fact.salary_hour_avg * 2080)), 0) AS avg_salary,
     market_median.us_median_salary
 FROM 
     job_postings_fact
--- Joining with company dimension to retrieve the actual company names.
+-- Join company_dim to retrieve employer names.
 LEFT JOIN company_dim ON job_postings_fact.company_id = company_dim.company_id
 CROSS JOIN market_median
 WHERE 
     job_postings_fact.job_title_short = 'Data Analyst' AND
     job_postings_fact.job_country = 'United States' AND
     job_postings_fact.job_schedule_type = 'Full-time' AND
-    company_dim.name NOT LIKE '%Test%' AND -- Excluding internal test data.
+    company_dim.name NOT LIKE '%Test%' AND -- Exclude test records.
     (job_postings_fact.salary_year_avg IS NOT NULL OR job_postings_fact.salary_hour_avg IS NOT NULL) AND
-    -- Applying seniority exclusions to keep the analysis focused on professional analysts.
+    -- Apply seniority-title exclusions to the employer comparison.
     job_postings_fact.job_title NOT LIKE '%Senior%' AND
     job_postings_fact.job_title NOT LIKE '%Director%' AND
     job_postings_fact.job_title NOT LIKE '%Principal%' AND
@@ -60,7 +58,7 @@ GROUP BY
     company_dim.name,
     market_median.us_median_salary
 HAVING 
-    -- Statistical Significance: Ensuring the company has a consistent hiring footprint.
+    -- Require more than 10 matching postings so the comparison is not based on only a few rows.
     COUNT(job_postings_fact.job_id) > 10 
 ORDER BY 
     avg_salary DESC

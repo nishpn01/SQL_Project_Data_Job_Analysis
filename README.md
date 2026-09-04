@@ -49,11 +49,10 @@ The setup SQL defines primary and foreign keys and creates indexes on the main j
 │   ├── 4_seasonal_hiring_strategy.sql
 │   ├── 5_comp_quantity_vs_quality.sql
 │   └── 6_global_skill_portability.sql
-├── sql_load/
-│   ├── 1_create_database.sql
-│   ├── 2_create_tables.sql
-│   └── 3_modify_tables.sql
-└── validation_sql/
+└── sql_load/
+    ├── 1_create_database.sql
+    ├── 2_create_tables.sql
+    └── 3_modify_tables.sql
 ```
 
 The raw CSV files and exported query-result CSVs are intentionally not tracked in this repository.

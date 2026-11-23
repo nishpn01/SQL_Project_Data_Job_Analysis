@@ -1,222 +1,75 @@
-# Data Market Intelligence: 2023 Job Market Analysis
+# Data Market Intelligence
 
-An early SQL and Tableau project exploring patterns in a 2023 data-job-postings dataset.
+Data Market Intelligence is a PostgreSQL analytics project with a Tableau analysis of a 2023 data-job-posting sample. I built a local fact/dimension schema with a many-to-many skills bridge, then wrote six queries about listed salary, skills, monthly posting volume, employer patterns, and cross-role demand. [Open the Tableau dashboard](https://public.tableau.com/views/JobMarketAnalysis_17745897577470/Top10Salary?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link).
 
-I built this while developing my SQL and PostgreSQL skills. The project uses a local PostgreSQL database, six analytical queries, and Tableau views to examine salary listings, skills, posting volume, and cross-role patterns.
+![Top-paying data analyst roles in the 2023 sample](Assets/q1_top10_paying_jobs.png)
 
-This README focuses on the technical work. The portfolio case study will carry the shorter narrative and reflection.
+## What this demonstrates
+
+| Concept | How it is implemented | Where to inspect it |
+| --- | --- | --- |
+| Fact/dimension schema with many-to-many bridge | A job-postings fact table, company and skill dimensions, and a composite-key job/skill bridge use foreign keys and indexed join keys | [`sql_load/2_create_tables.sql`](sql_load/2_create_tables.sql), [`Assets/Data_Schema.png`](Assets/Data_Schema.png) |
+| CTEs, joins, and percentile analysis | CTEs, relational joins, `PERCENTILE_CONT`, `COUNT`, `AVG`, `COALESCE`, and monthly date grouping support the six questions | [`data_jobs_analysis/`](data_jobs_analysis/) |
+| Salary normalization | Converts hourly listings to annual equivalents using 2,080 hours, then compares results with a filtered median | [`data_jobs_analysis/1_top_paying_jobs.sql`](data_jobs_analysis/1_top_paying_jobs.sql) |
+| Tableau analysis | Six query outputs are documented with visual references and a live Tableau dashboard | [`Assets/`](Assets/), [Tableau Public](https://public.tableau.com/views/JobMarketAnalysis_17745897577470/Top10Salary?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link) |
+| Reproducibility boundary | Database creation, DDL, CSV loading with `COPY`, and SQL analysis are versioned; source CSVs and exported results are not included | [`sql_load/`](sql_load/) |
+
+## Data model and analytical path
+
+```mermaid
+erDiagram
+  company_dim ||--o{ job_postings_fact : employs
+  job_postings_fact ||--o{ skills_job_dim : requires
+  skills_dim ||--o{ skills_job_dim : names
+```
+
+1. Create the database and four tables: `job_postings_fact`, `company_dim`, `skills_dim`, and `skills_job_dim`.
+2. Load the source CSVs into the schema. The bridge table's composite key prevents duplicate job/skill pairs; foreign-key indexes support the analysis joins.
+3. Filter each question to its stated population. Several Data Analyst queries use US, full-time, non-leadership listings with salary data; the cross-role query intentionally uses a broader three-role population.
+4. Standardize annual salary with `COALESCE(salary_year_avg, salary_hour_avg * 2080)` and use a median benchmark where applicable.
+5. Send the query outputs to Tableau for visual inspection and preserve the visual references alongside the SQL.
 
 ## Questions explored
 
-The analysis asks six practical questions:
+1. Which US full-time Data Analyst listings had the highest standardized salary in the sample?
+2. Which skills appeared with that returned top-ten cohort?
+3. Which skills were relatively uncommon within a defined sample threshold and had higher average listed salaries?
+4. How did matching posting volume vary by month in 2023?
+5. How did matching employers compare on posting volume and average listed salary?
+6. Which skills appeared across Data Analyst, Data Scientist, and Data Engineer postings?
 
-1. Which US full-time Data Analyst listings return the highest standardized salaries?
-2. Which skills are attached to those top-returned listings?
-3. Which relatively uncommon skills also have higher average listed salaries?
-4. How does Data Analyst posting volume change by month in the 2023 dataset?
-5. How do employers compare on posting volume and average listed salary?
-6. Which skills appear across Data Analyst, Data Scientist, and Data Engineer postings?
+![Skills shared across selected data roles](Assets/q6_global_skill_portability.png)
 
-## Data model
+## Run locally
 
-The project uses four relational tables:
+The raw CSV source files and exported query results are not included. Obtain the same source dataset, place the four CSVs in a directory of your choice, and replace the four local paths in the load script before running it.
 
-- `job_postings_fact` — job IDs, titles, locations, posting dates, salary fields, and related job attributes
-- `company_dim` — company metadata
-- `skills_dim` — skill names and categories
-- `skills_job_dim` — bridge table connecting job postings to skills
-
-The setup SQL defines primary and foreign keys and creates indexes on the main join keys.
-
-## Repository structure
-
-```text
-.
-├── README.md
-├── Assets/
-│   ├── Data_Schema.png
-│   ├── q1_top10_paying_jobs.png
-│   ├── q2_skills_for_top10_jobs.png
-│   ├── q3_the_hidden_gems.png
-│   ├── q4_seasonal_hiring_strategy.png
-│   ├── q5_Company_Quality _quantity.png
-│   └── q6_global_skill_portability.png
-├── data_jobs_analysis/
-│   ├── 1_top_paying_jobs.sql
-│   ├── 2_skills_for_top_paying_jobs.sql
-│   ├── 3_01_validation.sql
-│   ├── 3_market_saturation_vs_oppty.sql
-│   ├── 4_seasonal_hiring_strategy.sql
-│   ├── 5_comp_quantity_vs_quality.sql
-│   └── 6_global_skill_portability.sql
-└── sql_load/
-    ├── 1_create_database.sql
-    ├── 2_create_tables.sql
-    └── 3_modify_tables.sql
+```bash
+createdb data_jobs
+psql -d data_jobs -f sql_load/1_create_database.sql
+psql -d data_jobs -f sql_load/2_create_tables.sql
+# Replace the four local CSV paths in sql_load/3_modify_tables.sql, then:
+psql -d data_jobs -f sql_load/3_modify_tables.sql
+psql -d data_jobs -f data_jobs_analysis/1_top_paying_jobs.sql
 ```
 
-The raw CSV files and exported query-result CSVs are intentionally not tracked in this repository.
+Run the remaining numbered query files independently. The scripts expose their filters and assumptions so a reviewer can inspect each question before using the output.
 
-## Database setup
+## Repository map
 
-The `sql_load/` scripts create the PostgreSQL tables and relationships used in the analysis.
+| Path | Purpose |
+| --- | --- |
+| [`sql_load/`](sql_load/) | Database, DDL, and configurable CSV-load template |
+| [`data_jobs_analysis/`](data_jobs_analysis/) | Six analysis queries and one validation query |
+| [`Assets/`](Assets/) | Schema diagram and visual references for all six queries |
 
-Technical details include:
+## Current status and limits
 
-- primary keys on the dimension/fact tables
-- a composite primary key on `skills_job_dim`
-- foreign-key relationships between jobs, companies, and skills
-- indexes on `company_id`, `skill_id`, and `job_id`
-- CSV loading through PostgreSQL `COPY`
+- This is a 2023 posting sample, not a definitive labor-market model.
+- Low posting frequency is not applicant competition; the 5% rule is a project-specific screen.
+- Posting volume and average listed salary do not measure employer or job quality.
+- Cross-role skill overlap does not measure an individual's career progression.
 
-The current load script contains local file paths from the machine where the project was built. If you run this project yourself, those paths need to be replaced with paths to your local copies of the source CSV files.
+## Ownership
 
-## Analysis
-
-### 1. Top-paying Data Analyst listings
-
-[`data_jobs_analysis/1_top_paying_jobs.sql`](data_jobs_analysis/1_top_paying_jobs.sql)
-
-This query filters for:
-
-- `job_title_short = 'Data Analyst'`
-- United States
-- full-time postings
-- available salary data
-- several seniority/leadership-title exclusions
-
-Hourly salary values are annualized using a 2,080-hour multiplier where needed. A median benchmark is calculated with `PERCENTILE_CONT(0.5)`.
-
-The query returns the top 10 rows by standardized yearly salary.
-
-**Known limitation:** the title filters exclude words such as `Senior`, but do not catch every abbreviation or title variation such as `Sr`.
-
-![Top-paying listings](Assets/q1_top10_paying_jobs.png)
-
-### 2. Skills associated with the top-returned listings
-
-[`data_jobs_analysis/2_skills_for_top_paying_jobs.sql`](data_jobs_analysis/2_skills_for_top_paying_jobs.sql)
-
-This query reuses the top-paying cohort and joins it to `skills_job_dim` and `skills_dim` to inspect which skills are associated with those listings.
-
-Techniques used:
-
-- CTEs
-- joins across fact and dimension tables
-- reuse of the median benchmark
-
-![Skills for top-returned listings](Assets/q2_skills_for_top10_jobs.png)
-
-### 3. Relatively uncommon skills with higher average salaries
-
-[`data_jobs_analysis/3_market_saturation_vs_oppty.sql`](data_jobs_analysis/3_market_saturation_vs_oppty.sql)
-
-This query looks for skills that:
-
-- appear in more than 10 matching postings
-- appear in fewer than 5% of a calculated posting denominator
-- have salary data available
-
-It compares each skill's average standardized salary with the same median benchmark used elsewhere in the analysis.
-
-**Interpretation note:** low posting frequency is not the same thing as low applicant competition. This query measures prevalence in the posting sample, not the number of applicants competing for each role.
-
-**Method note:** the denominator used for the 5% threshold is broader than some of the later seniority-filtered result logic, so the threshold should be read as a project-specific screen rather than a universal market definition.
-
-![Relatively uncommon skills](Assets/q3_the_hidden_gems.png)
-
-### 4. Monthly posting volume
-
-[`data_jobs_analysis/4_seasonal_hiring_strategy.sql`](data_jobs_analysis/4_seasonal_hiring_strategy.sql)
-
-This query groups matching Data Analyst postings by month using:
-
-- `TO_CHAR`
-- `EXTRACT`
-- chronological month ordering
-
-The result shows the posting pattern inside this 2023 dataset. It should not be treated as a universal rule about the best month to apply for jobs.
-
-![Monthly posting volume](Assets/q4_seasonal_hiring_strategy.png)
-
-### 5. Employer posting volume vs. average salary
-
-[`data_jobs_analysis/5_comp_quantity_vs_quality.sql`](data_jobs_analysis/5_comp_quantity_vs_quality.sql)
-
-This query compares employers using two measures:
-
-- number of matching postings
-- average standardized salary
-
-Only employers with more than 10 matching postings are included.
-
-The original filename uses "quality vs. quantity," but the query does not measure overall employer or job quality. It measures posting volume and average listed salary.
-
-![Employer posting volume vs. average salary](Assets/q5_Company_Quality%20_quantity.png)
-
-### 6. Skills shared across data-role categories
-
-[`data_jobs_analysis/6_global_skill_portability.sql`](data_jobs_analysis/6_global_skill_portability.sql)
-
-This query looks across:
-
-- Data Analyst
-- Data Scientist
-- Data Engineer
-
-For each skill it calculates:
-
-- number of role categories in which the skill appears
-- total posting demand
-- average standardized salary
-
-The query keeps skills appearing across at least two of the three role categories.
-
-This is a cross-role posting analysis. It does not measure lifetime earnings, career resilience, or individual career progression.
-
-![Cross-role skills](Assets/q6_global_skill_portability.png)
-
-## Tableau
-
-The SQL results were used to create Tableau views for visual exploration.
-
-[View the Tableau project](https://public.tableau.com/views/JobMarketAnalysis_17745897577470/Top10Salary?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
-
-The screenshots in `Assets/` are retained as visual references from that analysis.
-
-## SQL techniques used
-
-Across the six queries, the project uses:
-
-- PostgreSQL
-- relational joins
-- common table expressions
-- `PERCENTILE_CONT`
-- `AVG`, `COUNT`, and grouped aggregations
-- `COALESCE`
-- salary standardization
-- `TO_CHAR`
-- `EXTRACT`
-- filtering and threshold logic
-- basic result validation
-
-## What I learned
-
-This was one of my earlier SQL projects, so the value for me was less about producing a definitive market model and more about learning how to turn broad questions into queries I could inspect and compare.
-
-The project helped me practice:
-
-- structuring a relational database locally
-- joining fact and dimension tables
-- breaking larger questions into smaller SQL analyses
-- creating a consistent benchmark across multiple queries
-- moving query results into Tableau for visual review
-- recognizing where a query result supports an observation and where interpretation can go too far
-
-## Notes on reproducibility
-
-The repository preserves the SQL, schema setup, and screenshots, but it does not include the raw source CSV files or exported result CSVs.
-
-To reproduce the analysis exactly, you would need the same source dataset and would need to update the local file paths in `sql_load/3_modify_tables.sql` before loading the data.
-
-This project is kept as an early portfolio/learning project rather than a production analytics package.
+I made the analytical choices about questions, filters, thresholds, and interpretation; the schema setup was guided.
